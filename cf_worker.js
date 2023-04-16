@@ -5,27 +5,22 @@ addEventListener("fetch", event => {
 async function handleRequest(request) {
 
   const { searchParams } = new URL(request.url)
-  let device = searchParams.get('device')
-  let mode = searchParams.get('mode')
-  
-  if (mode === null && device === null) {
-    return new Response("请在链接中提供网络协议版本(IPv4或IPv6)和网卡名称!", { status: 400 })
-  }
+  let device = searchParams.get('device') || 'eth0'
+  let mode = searchParams.get('mode') || '4'
+
   if (mode !== '4' && mode !== '6') {
     return new Response("网络协议版本参数错误！", { status: 400 })
   }
-  if (device === null) {
-    device='eth0'
-  }
-  
-  let data_url = 'https://raw.githubusercontent.com/RyoLee/routes/gh-pages/eth0/routes' + mode + '.conf'
+
+  let data_url = `https://raw.githubusercontent.com/RyoLee/routes/gh-pages/eth0/routes${mode}.conf`
   if (request.method !== 'GET') return MethodNotAllowed(request)
   const response = await fetch(data_url)
+
   if (response.ok) {
     const body = await response.text();
     return new Response(body.replaceAll('eth0', device))
   } else {
-    return InternalServerError(request)
+    return InternalServerError()
   }
 }
 
@@ -38,7 +33,7 @@ function MethodNotAllowed(request) {
   });
 }
 
-function InternalServerError(request) {
+function InternalServerError() {
   return new Response(`内部服务器错误。`, {
     status: 500,
   });
