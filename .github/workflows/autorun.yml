@@ -26,7 +26,7 @@ jobs:
           python3 produce.py --next="eth0"
           mv routes4.conf ../routes/eth0
           mv routes6.conf ../routes/eth0
-          ./asn_cn.py ../routes/eth0/asn_cn.conf
+          python3 asn_cn.py -o routes/eth0/asn_cn.conf
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
