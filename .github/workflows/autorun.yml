@@ -37,7 +37,7 @@ jobs:
 
       - name: download cidr
         run: |
-          python3 asn_cn.py -o routes/eth0/asn_cn.conf
+          python3 asn_cn.py -o asn_cn.conf
 
 
       - name: Deploy
