@@ -16,8 +16,6 @@ jobs:
       - uses: actions/setup-python@v3
         with:
           python-version: "3.9"
-          
-
       - name: Run codes
         run: |
           mkdir routes/eth0 -p
@@ -28,17 +26,6 @@ jobs:
           python3 produce.py --next="eth0"
           mv routes4.conf ../routes/eth0
           mv routes6.conf ../routes/eth0
-
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: List files in current directory
-        run: ls -R
-
-      - name: download cidr
-        run: |
-          python3 asn_cn.py -o asn_cn.conf
-
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
