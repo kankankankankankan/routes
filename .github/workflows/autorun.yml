@@ -22,7 +22,13 @@ jobs:
           cd nchnroutes
           curl -s -o delegated-apnic-latest https://ftp.apnic.net/stats/apnic/delegated-apnic-latest
           curl -s -o chnroutes.txt https://raw.githubusercontent.com/misakaio/chnroutes2/master/chnroutes.txt
-          cat chnroutes.txt | grep -Ev "^#" > china_ip_list.txt
+          curl -s -o CN.txt https://raw.githubusercontent.com/tmplink/IPDB/refs/heads/main/ipv4/cidr/CN.txt
+          curl -fsSL -o china_ip_list_17mon.txt https://raw.githubusercontent.com/17mon/china_ip_list/refs/heads/master/china_ip_list.txt
+          cat chnroutes.txt CN.txt china_ip_list_17mon.txt \
+            | grep -Ev "^\s*#" \
+            | grep -Ev "^\s*$" \
+            | sort -u \
+            > china_ip_list.txt
           python3 produce.py --next="eth0"
           mv routes4.conf ../routes/eth0
           mv routes6.conf ../routes/eth0
