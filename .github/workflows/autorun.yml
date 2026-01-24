@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@master
         with:
-          repository: dndx/nchnroutes
+          repository: kankankankankankan/nchnroutes
           path: nchnroutes
       - uses: actions/setup-python@v3
         with:
