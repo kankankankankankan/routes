@@ -17,7 +17,18 @@ api params:
         - 6 : ipv6
     device: 
         - eth0 : (default)
-        - [string] : device name
+        - [string] : device name,for example tun0, eth1, ens192
+
+    via:
+        - [ip] : next hop gateway IP (optional), supports IPv4 and IPv6
+        - If via is set, output uses gateway form via <ip> and ignores device
+
+    Examples:
+        - /ncr?device=tun0
+        - /ncr?mode=6&device=tun0
+        - /ncr?via=192.168.124.250
+        - /ncr?mode=6&via=2001:db8::1
+        
 # CN-ASN
 ```
 #./asn_cn.py -h
@@ -32,3 +43,4 @@ optional arguments:
                         multiple sources can be used at the same time (default: apnic he ipip)
   -v, --version         show program's version number and exit
 ```
+
