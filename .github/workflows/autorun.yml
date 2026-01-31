@@ -23,9 +23,10 @@ jobs:
           curl -s -o delegated-apnic-latest https://ftp.apnic.net/stats/apnic/delegated-apnic-latest
           curl -s -o chnroutes.txt https://raw.githubusercontent.com/misakaio/chnroutes2/master/chnroutes.txt
           curl -s -o CN.txt https://raw.githubusercontent.com/tmplink/IPDB/refs/heads/main/ipv4/cidr/CN.txt
+          curl -s -o chnroutes2.txt https://raw.githubusercontent.com/mayaxcn/china-ip-list/refs/heads/master/chnroute.txt
           curl -s -o china_ip_list_17mon.txt https://raw.githubusercontent.com/17mon/china_ip_list/refs/heads/master/china_ip_list.txt
           curl -s -o chnroute_kankan.txt https://raw.githubusercontent.com/kankankankankankan/china-ip-list/refs/heads/master/chnroute.txt
-          cat chnroutes.txt CN.txt china_ip_list_17mon.txt chnroute_kankan.txt \
+          cat chnroutes.txt CN.txt chnroutes2.txt china_ip_list_17mon.txt chnroute_kankan.txt \
             | grep -Ev "^\s*#" \
             | grep -Ev "^\s*$" \
             | grep -F "." \
