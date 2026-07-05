@@ -8,32 +8,54 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
     steps:
-      - uses: actions/checkout@master
+      - name: Checkout routes repo
+        uses: actions/checkout@v4
+        with:
+          path: routes-src
+
+      - name: Checkout nchnroutes
+        uses: actions/checkout@v4
         with:
           repository: kankankankankankan/nchnroutes
           path: nchnroutes
-      - uses: actions/setup-python@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.9"
-      - name: Run codes
+
+      - name: Generate routes
+        shell: bash
         run: |
-          mkdir routes/eth0 -p
+          set -euo pipefail
+
+          mkdir -p routes/eth0
+
           cd nchnroutes
-          curl -s -o delegated-apnic-latest https://ftp.apnic.net/stats/apnic/delegated-apnic-latest
-          curl -s -o chnroutes.txt https://raw.githubusercontent.com/misakaio/chnroutes2/master/chnroutes.txt
-          curl -s -o CN.txt https://raw.githubusercontent.com/tmplink/IPDB/refs/heads/main/ipv4/cidr/CN.txt
-          curl -s -o chnroutes2.txt https://raw.githubusercontent.com/mayaxcn/china-ip-list/refs/heads/master/chnroute.txt
-          curl -s -o china_ip_list_17mon.txt https://raw.githubusercontent.com/17mon/china_ip_list/refs/heads/master/china_ip_list.txt
-          curl -s -o chnroute_kankan.txt https://raw.githubusercontent.com/kankankankankankan/china-ip-list/refs/heads/master/chnroute.txt
+
+          curl -fsSL -o delegated-apnic-latest https://ftp.apnic.net/stats/apnic/delegated-apnic-latest
+          curl -fsSL -o chnroutes.txt https://raw.githubusercontent.com/misakaio/chnroutes2/master/chnroutes.txt
+          curl -fsSL -o CN.txt https://raw.githubusercontent.com/tmplink/IPDB/refs/heads/main/ipv4/cidr/CN.txt
+          curl -fsSL -o chnroutes2.txt https://raw.githubusercontent.com/mayaxcn/china-ip-list/refs/heads/master/chnroute.txt
+          curl -fsSL -o china_ip_list_17mon.txt https://raw.githubusercontent.com/17mon/china_ip_list/refs/heads/master/china_ip_list.txt
+          curl -fsSL -o chnroute_kankan.txt https://raw.githubusercontent.com/kankankankankankan/china-ip-list/refs/heads/master/chnroute.txt
+
           cat chnroutes.txt CN.txt chnroutes2.txt china_ip_list_17mon.txt chnroute_kankan.txt \
-            | grep -Ev "^\s*#" \
-            | grep -Ev "^\s*$" \
+            | sed 's/#.*$//' \
+            | tr -d '\r' \
+            | awk NF \
             | grep -F "." \
             | sort -u \
             > china_ip_list.txt
 
+
           EXCLUDES=()
+
           if [[ -f ../routes-src/excludes.txt ]]; then
             mapfile -t EXCLUDES < <(
               sed 's/#.*$//' ../routes-src/excludes.txt \
@@ -48,12 +70,18 @@ jobs:
             PRODUCE_ARGS=(--exclude "${EXCLUDES[@]}" "${PRODUCE_ARGS[@]}")
           fi
 
+          echo "Produce args:"
+          printf '  %q\n' "${PRODUCE_ARGS[@]}"
+
           python3 produce.py "${PRODUCE_ARGS[@]}"
+
           mv routes4.conf ../routes/eth0/
           mv routes6.conf ../routes/eth0/
 
+          echo "Generated files:"
+          ls -lh ../routes/eth0
 
-      - name: Deploy
+      - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -61,3 +89,4 @@ jobs:
           user_name: "github-actions[bot]"
           user_email: "github-actions[bot]@users.noreply.github.com"
           full_commit_message: Deploy from ${{ github.repository }}@${{ github.sha }}
+          
