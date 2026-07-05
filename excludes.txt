@@ -2,3 +2,4 @@
 # Put Mainland-China ranges here when upstream China IP lists miss them.
 
 43.160.156.0/24
+43.160.144.0/20
