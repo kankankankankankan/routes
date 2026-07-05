@@ -32,9 +32,26 @@ jobs:
             | grep -F "." \
             | sort -u \
             > china_ip_list.txt
-          python3 produce.py --next="eth0"
-          mv routes4.conf ../routes/eth0
-          mv routes6.conf ../routes/eth0
+
+          EXCLUDES=()
+          if [[ -f ../routes-src/excludes.txt ]]; then
+            mapfile -t EXCLUDES < <(
+              sed 's/#.*$//' ../routes-src/excludes.txt \
+                | tr -d '\r' \
+                | awk NF
+            )
+          fi
+
+          PRODUCE_ARGS=(--next="eth0")
+
+          if ((${#EXCLUDES[@]} > 0)); then
+            PRODUCE_ARGS=(--exclude "${EXCLUDES[@]}" "${PRODUCE_ARGS[@]}")
+          fi
+
+          python3 produce.py "${PRODUCE_ARGS[@]}"
+          mv routes4.conf ../routes/eth0/
+          mv routes6.conf ../routes/eth0/
+
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
