@@ -1,6 +1,5 @@
 # CIDR ranges to remove from generated non-China routes.
 # Put Mainland-China ranges here when upstream China IP lists miss them.
-
 43.160.144.0/20
 43.152.112.0/24
 43.156.222.0/24
