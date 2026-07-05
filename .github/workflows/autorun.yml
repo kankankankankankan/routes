@@ -35,7 +35,6 @@ jobs:
           set -euo pipefail
 
           mkdir -p routes/eth0
-
           cd nchnroutes
 
           curl -fsSL -o delegated-apnic-latest https://ftp.apnic.net/stats/apnic/delegated-apnic-latest
@@ -48,11 +47,10 @@ jobs:
           cat chnroutes.txt CN.txt chnroutes2.txt china_ip_list_17mon.txt chnroute_kankan.txt \
             | sed 's/#.*$//' \
             | tr -d '\r' \
-            | awk NF \
+            | awk '{$1=$1}; NF' \
             | grep -F "." \
             | sort -u \
             > china_ip_list.txt
-
 
           EXCLUDES=()
 
@@ -60,7 +58,7 @@ jobs:
             mapfile -t EXCLUDES < <(
               sed 's/#.*$//' ../routes-src/excludes.txt \
                 | tr -d '\r' \
-                | awk NF
+                | awk '{$1=$1}; NF'
             )
           fi
 
@@ -75,8 +73,8 @@ jobs:
 
           python3 produce.py "${PRODUCE_ARGS[@]}"
 
-          mv routes4.conf ../routes/eth0/
-          mv routes6.conf ../routes/eth0/
+          mv routes4.conf ../routes/eth0/routes4.conf
+          mv routes6.conf ../routes/eth0/routes6.conf
 
           echo "Generated files:"
           ls -lh ../routes/eth0
@@ -89,4 +87,3 @@ jobs:
           user_name: "github-actions[bot]"
           user_email: "github-actions[bot]@users.noreply.github.com"
           full_commit_message: Deploy from ${{ github.repository }}@${{ github.sha }}
-          
