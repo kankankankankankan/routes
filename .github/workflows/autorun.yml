@@ -53,17 +53,19 @@ jobs:
             > china_ip_list.txt
 
           EXCLUDES=()
-
+          
           if [[ -f ../routes-src/excludes.txt ]]; then
-            mapfile -t EXCLUDES < <(
+            while IFS= read -r cidr; do
+              [[ -n "$cidr" ]] && EXCLUDES+=("$cidr")
+            done < <(
               sed 's/#.*$//' ../routes-src/excludes.txt \
                 | tr -d '\r' \
-                | awk '{$1=$1}; NF'
+                | awk '{$1=$1}; NF {print $1}'
             )
           fi
 
           PRODUCE_ARGS=(--next="eth0")
-
+          
           if ((${#EXCLUDES[@]} > 0)); then
             PRODUCE_ARGS=(--exclude "${EXCLUDES[@]}" "${PRODUCE_ARGS[@]}")
           fi
@@ -73,8 +75,8 @@ jobs:
 
           python3 produce.py "${PRODUCE_ARGS[@]}"
 
-          mv routes4.conf ../routes/eth0/routes4.conf
-          mv routes6.conf ../routes/eth0/routes6.conf
+          mv routes4.conf ../routes/eth0/
+          mv routes6.conf ../routes/eth0/
 
           echo "Generated files:"
           ls -lh ../routes/eth0
