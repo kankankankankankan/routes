@@ -42,13 +42,11 @@ jobs:
           cd nchnroutes
 
           curl -fsSL -o delegated-apnic-latest https://ftp.apnic.net/stats/apnic/delegated-apnic-latest
-          curl -fsSL -o chnroutes.txt https://raw.githubusercontent.com/misakaio/chnroutes2/master/chnroutes.txt
-          curl -fsSL -o CN1.txt https://raw.githubusercontent.com/kankankankankankan/china-ip-list/refs/heads/master/chnroute.txt
-          curl -fsSL -o chnroutes2.txt https://raw.githubusercontent.com/mayaxcn/china-ip-list/refs/heads/master/chnroute.txt
-          curl -fsSL -o china_ip_list_17mon.txt https://raw.githubusercontent.com/17mon/china_ip_list/refs/heads/master/china_ip_list.txt
-          curl -fsSL -o chnroute_kankan.txt https://raw.githubusercontent.com/kankankankankankan/china-ip-list/refs/heads/master/chnroute.txt
+          curl -fsSL -o china.txt https://raw.githubusercontent.com/gaoyifan/china-operator-ip/refs/heads/ip-lists/china.txt
+          curl -fsSL -o chnroutes.txt https://raw.githubusercontent.com/misakaio/chnroutes2/refs/heads/master/chnroutes.txt
+          curl -fsSL -o chnip.txt https://raw.githubusercontent.com/wendellouyang/geolite2_china_ip_list/refs/heads/main/chnip.txt
 
-          cat chnroutes.txt CN1.txt chnroutes2.txt china_ip_list_17mon.txt chnroute_kankan.txt \
+          cat chnroutes.txt china.txt chnroutes.txt chnip.txt \
             | sed 's/#.*$//' \
             | tr -d '\r' \
             | awk '{$1=$1}; NF' \
