@@ -41,21 +41,88 @@ jobs:
           mkdir -p routes/eth0
           cd nchnroutes
 
-          curl -fsSL -o delegated-apnic-latest https://ftp.apnic.net/stats/apnic/delegated-apnic-latest
-          curl -fsSL -o china.txt https://raw.githubusercontent.com/gaoyifan/china-operator-ip/refs/heads/ip-lists/china.txt
-          curl -fsSL -o chnroutes.txt https://raw.githubusercontent.com/misakaio/chnroutes2/refs/heads/master/chnroutes.txt
-          curl -fsSL -o chnip.txt https://raw.githubusercontent.com/wendellouyang/geolite2_china_ip_list/refs/heads/main/chnip.txt
+          curl -fSL --retry 3 --retry-delay 2 -o delegated-apnic-latest https://ftp.apnic.net/stats/apnic/delegated-apnic-latest
+          curl -fSL --retry 3 --retry-delay 2 -o china.txt https://raw.githubusercontent.com/gaoyifan/china-operator-ip/refs/heads/ip-lists/china.txt
+          curl -fSL --retry 3 --retry-delay 2 -o chnroutes.txt https://raw.githubusercontent.com/misakaio/chnroutes2/refs/heads/master/chnroutes.txt
+          curl -fSL --retry 3 --retry-delay 2 -o chnip.txt https://raw.githubusercontent.com/wendellouyang/geolite2_china_ip_list/refs/heads/main/chnip.txt
 
-          cat chnroutes.txt china.txt chnroutes.txt chnip.txt \
-            | sed 's/#.*$//' \
-            | tr -d '\r' \
-            | awk '{$1=$1}; NF' \
-            | grep -F "." \
-            | sort -u \
-            > china_ip_list.txt
+          python3 - <<'PY'
+          import ipaddress
+          from pathlib import Path
+
+          sources = [
+              Path("china.txt"),
+              Path("chnroutes.txt"),
+              Path("chnip.txt"),
+          ]
+
+          networks = []
+          source_counts = {}
+
+          for path in sources:
+              current = []
+
+              with path.open("r", encoding="utf-8-sig", errors="strict") as f:
+                  for lineno, raw in enumerate(f, 1):
+                      line = raw.split("#", 1)[0].strip()
+
+                      if not line:
+                          continue
+
+                      try:
+                          net = ipaddress.ip_network(line, strict=True)
+                      except ValueError as e:
+                          raise SystemExit(
+                              f"{path}:{lineno}: invalid CIDR {line!r}: {e}"
+                          )
+
+                      if net.version != 4:
+                          continue
+
+                      if net.prefixlen == 0:
+                          raise SystemExit(
+                              f"{path}:{lineno}: dangerous CIDR {net}"
+                          )
+
+                      current.append(net)
+
+              if not current:
+                  raise SystemExit(f"{path}: no valid IPv4 CIDRs")
+
+              source_counts[path.name] = len(current)
+              networks.extend(current)
+
+          unique_count = len(set(networks))
+          collapsed = list(ipaddress.collapse_addresses(networks))
+
+          with open("china_ip_list.txt", "w", encoding="utf-8", newline="\n") as f:
+              for net in collapsed:
+                  f.write(f"{net}\n")
+
+          print()
+          print("China IPv4 merge statistics:")
+          for name, count in source_counts.items():
+              print(f"  {name:<16} {count:>7} CIDRs")
+
+          print(f"  {'raw total':<16} {len(networks):>7} CIDRs")
+          print(f"  {'unique':<16} {unique_count:>7} CIDRs")
+          print(f"  {'collapsed':<16} {len(collapsed):>7} CIDRs")
+          print(f"  {'addresses':<16} {sum(n.num_addresses for n in collapsed):>7}")
+
+          if len(collapsed) < 4000:
+              raise SystemExit(
+                  f"collapsed CIDR count suspiciously low: {len(collapsed)}"
+              )
+          PY
+
+          echo
+          echo "Final china_ip_list.txt:"
+          wc -l china_ip_list.txt
+          head -n 5 china_ip_list.txt
+          tail -n 5 china_ip_list.txt
 
           EXCLUDES=()
-          
+
           if [[ -f ../routes-src/excludes.txt ]]; then
             while IFS= read -r cidr; do
               [[ -n "$cidr" ]] && EXCLUDES+=("$cidr")
@@ -67,11 +134,12 @@ jobs:
           fi
 
           PRODUCE_ARGS=(--next="eth0")
-          
+
           if ((${#EXCLUDES[@]} > 0)); then
             PRODUCE_ARGS=(--exclude "${EXCLUDES[@]}" "${PRODUCE_ARGS[@]}")
           fi
 
+          echo
           echo "Produce args:"
           printf '  %q\n' "${PRODUCE_ARGS[@]}"
 
@@ -80,6 +148,7 @@ jobs:
           mv routes4.conf ../routes/eth0/
           mv routes6.conf ../routes/eth0/
 
+          echo
           echo "Generated files:"
           ls -lh ../routes/eth0
 
