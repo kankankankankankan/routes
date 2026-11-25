@@ -11,27 +11,27 @@ on:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     permissions:
       contents: write
 
     steps:
       - name: Checkout routes repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: routes-src
 
       - name: Checkout nchnroutes
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: kankankankankankan/nchnroutes
           path: nchnroutes
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: "3.9"
+          python-version: "3.12"
 
       - name: Generate routes
         shell: bash
